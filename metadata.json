@@ -1,0 +1,10 @@
+{
+  "description": "Create QRcode for selected text.",
+  "name": "QRcode",
+  "gettext-domain": "qrcode",
+  "shell-version": ["40", "41", "42"],
+  "url": "https://github.com/eexpress/gs-qrcode",
+  "uuid": "qrcode@eexpss.gmail.com",
+  "settings-schema": "org.gnome.shell.extensions.qrcode",
+  "version": 1
+}
