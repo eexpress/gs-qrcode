@@ -23,13 +23,13 @@ const Indicator = GObject.registerClass(
 
 			const micon = new St.Icon({ icon_name : "edit-find-symbolic", style_class : 'system-status-icon' });
 			this.add_child(micon);
-			const mqrcode = new PopupMenu.PopupBaseMenuItem();
+			this.mqrcode = new PopupMenu.PopupBaseMenuItem();
 			this.icon = new St.Icon({
 				 icon_name : "edit-find-symbolic",
 				 icon_size: 256,
 				 });
-			mqrcode.actor.add_child(this.icon);
-			this.menu.addMenuItem(mqrcode);
+			this.mqrcode.actor.add_child(this.icon);
+			this.menu.addMenuItem(this.mqrcode);
 
 			this.menu.connect('open-state-changed', (menu, open) => {
 				if (open) {
@@ -59,6 +59,12 @@ const Indicator = GObject.registerClass(
 					try {
 						if (proc.get_successful()) {
 							this.icon.set_gicon(Gio.Icon.new_for_string(tmpfile));
+							//~ this.icon.queue_redraw();
+							//~ this.icon.get_content().invalidate(); // is null
+							//~ this.menu.actor.queue_redraw();
+							//~ this.mqrcode.queue_redraw();
+							//~ this.mqrcode.actor().queue_redraw();
+							//~ this._canvas.invalidate();
 							//~ 不更新显示？??????
 							Gio.app_info_launch_default_for_uri(`file://${tmpfile}`, global.create_app_launch_context(0, -1));
 						}
