@@ -12,7 +12,8 @@ const _ = ExtensionUtils.gettext;
 
 function lg(s) { log("===" + _domain + "===>" + s); }
 
-const tmpfile = "/tmp/qrcode.png";
+//~ const tmpfile = "/tmp/qrcode.png";
+const tmpfile = "/home/eexpss/qrcode.png";
 
 const Indicator = GObject.registerClass(
 	class Indicator extends PanelMenu.Button {
@@ -25,9 +26,9 @@ const Indicator = GObject.registerClass(
 			this.add_child(micon);
 			this.mqrcode = new PopupMenu.PopupBaseMenuItem();
 			this.icon = new St.Icon({
-				 icon_name : "edit-find-symbolic",
-				 icon_size: 256,
-				 });
+				icon_name : "edit-find-symbolic",
+				icon_size: 256,
+				});
 			this.mqrcode.actor.add_child(this.icon);
 			this.menu.addMenuItem(this.mqrcode);
 
@@ -35,9 +36,9 @@ const Indicator = GObject.registerClass(
 				if (open) {
 					this._clipboard.get_text(St.ClipboardType.PRIMARY, (clipboard, text) => {
 						if (text && text.length > 4 && text !== this.lasttext) {
-							const r = GLib.find_program_in_path("qrcode");
+							const r = GLib.find_program_in_path("qrencode");
 							if (!r) {
-								Main.notify(_("需要安装qrcode命令。"));
+								Main.notify(_("需要安装qrencode命令。"));
 								return;
 							}
 							this.lasttext = text;
@@ -52,21 +53,22 @@ const Indicator = GObject.registerClass(
 		async_cmd(str) {
 			try {
 				let proc = Gio.Subprocess.new(
-					[ 'bash', '-c', `qrcode "${str}" >${tmpfile}` ],
+					//~ [ 'bash', '-c', `qrcode "${str}" >${tmpfile}` ],
+					[ 'bash', '-c', `qrencode "${str}" -o ${tmpfile}` ],
 					Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
 
 				proc.communicate_async(null, null, (proc, res) => {
 					try {
+						let [, stdout, stderr] = proc.communicate_finish(res);
 						if (proc.get_successful()) {
-							this.icon.set_gicon(Gio.Icon.new_for_string(tmpfile));
-							//~ this.icon.queue_redraw();
-							//~ this.icon.get_content().invalidate(); // is null
-							//~ this.menu.actor.queue_redraw();
-							//~ this.mqrcode.queue_redraw();
-							//~ this.mqrcode.actor().queue_redraw();
-							//~ this._canvas.invalidate();
-							//~ 不更新显示？??????
+							if (!GLib.file_test(tmpfile, GLib.FileTest.IS_REGULAR)){
+								lg("no file.");
+								return;
+							}
+							lg("out: " + stdout);
 							Gio.app_info_launch_default_for_uri(`file://${tmpfile}`, global.create_app_launch_context(0, -1));
+							this.icon.set_gicon(Gio.icon_new_for_string(tmpfile));
+							//~ 不更新显示？??????
 						}
 					} catch (e) { logError(e); }
 				});
