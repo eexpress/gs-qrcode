@@ -1,2 +1,5 @@
 # gs-qrcode
-gnome extension for qrcode
+
+Select text, Click menu to create QRCode.
+
+For mobile scan.

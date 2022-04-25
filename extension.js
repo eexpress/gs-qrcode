@@ -12,6 +12,7 @@ const _ = ExtensionUtils.gettext;
 function lg(s) { log("===" + _domain + "===>" + s); }
 
 const tmpdir = "/tmp/qrcode/";
+const linkdir = "/tmp/qrcode-link/";
 const cmd = "qrencode";
 
 const Indicator = GObject.registerClass(
@@ -20,6 +21,7 @@ const Indicator = GObject.registerClass(
 			super._init(0.0, _(Me.metadata['name']));
 			this._clipboard = St.Clipboard.get_default();
 			this.lasttext = '';
+			this.lastfile = '';
 
 			const micon = new St.Icon({
 				gicon : Gio.icon_new_for_string(Me.path + "/qrcode-symbolic.svg"),
@@ -49,6 +51,18 @@ const Indicator = GObject.registerClass(
 							this.lasttext = text;
 							this.async_cmd(text);
 						}
+					});
+					this._clipboard.get_text(St.ClipboardType.CLIPBOARD, (clipboard, text) => {
+						if(text == this.lastfile){return;}
+						this.lastfile = text;
+						const filearray = text.split("\n");
+						for (let i of filearray){
+							if (GLib.file_test(i, GLib.FileTest.IS_REGULAR)) {
+								const t = Gio.File.new_for_path(linkdir + Gio.File.new_for_path(i).get_basename());
+								t.make_symbolic_link(i, null);
+							}
+						}
+						//~ this.async_cmd("http://127.0.0.1:8000/");	//ip addr
 					});
 				}
 			});
@@ -88,12 +102,27 @@ class Extension {
 		this._indicator = new Indicator();
 		Main.panel.addToStatusArea(this._uuid, this._indicator);
 		GLib.mkdir_with_parents(tmpdir, 0o755);
+		GLib.mkdir_with_parents(linkdir, 0o755);
+		GLib.chdir(linkdir);
+		//~ kill -9 http.server
+		GLib.spawn_command_line_async("python3 -m  http.server 8000");
+								//~ lg(Gio.Socket.get_local_address());
+		const ip = Gio.Socket.new(
+			Gio.SocketFamily.IPV4,
+			Gio.SocketType.STREAM,
+			Gio.SocketProtocol.TCP
+			).get_local_address();
+		lg(ip);
+		//~ ).get_option(6, 5);
+
 	}
 
 	disable() {
 		this._indicator.destroy();
 		this._indicator = null;
 		GLib.rmdir(tmpdir);
+		GLib.rmdir(linkdir);
+		//~ kill -9 http.server
 	}
 }
 
