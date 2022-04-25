@@ -5,12 +5,14 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
-const ByteArray = imports.byteArray;
 
 const _domain = Me.metadata['gettext-domain'];
 const _ = ExtensionUtils.gettext;
 
 function lg(s) { log("===" + _domain + "===>" + s); }
+
+const tmpdir = "/tmp/qrcode/";
+const cmd = "qrencode";
 
 const Indicator = GObject.registerClass(
 	class Indicator extends PanelMenu.Button {
@@ -19,7 +21,11 @@ const Indicator = GObject.registerClass(
 			this._clipboard = St.Clipboard.get_default();
 			this.lasttext = '';
 
-			const micon = new St.Icon({ icon_name : "edit-find-symbolic", style_class : 'system-status-icon' });
+			const micon = new St.Icon({
+				//~ icon_name : "edit-find-symbolic",
+				gicon: Gio.icon_new_for_string(Me.path + "/qrcode-symbolic.svg"),
+				style_class : 'system-status-icon'
+			});
 			this.add_child(micon);
 
 			this.mqrcode = new PopupMenu.PopupBaseMenuItem();
@@ -36,9 +42,9 @@ const Indicator = GObject.registerClass(
 				if (open) {
 					this._clipboard.get_text(St.ClipboardType.PRIMARY, (clipboard, text) => {
 						if (text && text.length > 4 && text !== this.lasttext) {
-							const r = GLib.find_program_in_path("qrencode");
+							const r = GLib.find_program_in_path(cmd);
 							if (!r) {
-								Main.notify(_("需要安装qrencode命令。"));
+								Main.notify(_(`需要安装 ${cmd} 命令。`));
 								return;
 							}
 							this.lasttext = text;
@@ -50,10 +56,10 @@ const Indicator = GObject.registerClass(
 		}
 
 		async_cmd(str) {
-			const tmpfile = `/tmp/qrcode_${Date.now()}`;	// Just P 可变文件名解决  St.Icon 不刷新问题。
+			const tmpfile = `${tmpdir}/${Date.now()}`;	// Just P 可变文件名解决  St.Icon 不刷新问题。
 			try {
 				let proc = Gio.Subprocess.new(
-					[ 'bash', '-c', `qrencode "${str}" -o ${tmpfile}` ],
+					[ 'bash', '-c', `${cmd} "${str}" -o ${tmpfile}` ],
 					Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE);
 
 				proc.communicate_async(null, null, (proc, res) => {
@@ -83,11 +89,13 @@ class Extension {
 	enable() {
 		this._indicator = new Indicator();
 		Main.panel.addToStatusArea(this._uuid, this._indicator);
+		GLib.mkdir_with_parents(tmpdir, 0o755);
 	}
 
 	disable() {
 		this._indicator.destroy();
 		this._indicator = null;
+		GLib.rmdir(tmpdir);
 	}
 }
 
