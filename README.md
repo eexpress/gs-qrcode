@@ -1,5 +1,7 @@
 # gs-qrcode
 
+One way sharing clipboard and files to mobile by scan QRCode.
+
 Select text, Click menu to create QRCode.
 
-For mobile scan.
+Copy files from nautilus, Click menu to download the files.

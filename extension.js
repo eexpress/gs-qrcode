@@ -105,7 +105,7 @@ class Extension {
 		GLib.mkdir_with_parents(linkdir, 0o755);
 		GLib.chdir(linkdir);
 		//~ kill -9 http.server
-		GLib.spawn_command_line_async("python3 -m  http.server 8000");
+		GLib.spawn_command_line_async("python3 -m http.server 8000");
 								//~ lg(Gio.Socket.get_local_address());
 		const ip = Gio.Socket.new(
 			Gio.SocketFamily.IPV4,
