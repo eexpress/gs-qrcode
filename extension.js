@@ -21,12 +21,11 @@ const Indicator = GObject.registerClass(
 			super._init(0.0, _(Me.metadata['name']));
 			this._clipboard = St.Clipboard.get_default();
 			this.lasttext = '';
-			const tmpfile = GLib.get_home_dir() + "/qrcode.png";
 
 			const micon = new St.Icon({ icon_name : "edit-find-symbolic", style_class : 'system-status-icon' });
 			this.add_child(micon);
 
-			//~ const tmpfile = GLib.get_home_dir() + "/qrcode.png";
+			const tmpfile = GLib.get_home_dir() + "/qrcode.png";
 			this.mqrcode = new PopupMenu.PopupBaseMenuItem();
 			this.mqrcode.set_track_hover = true;
 			this.icon = new St.Icon({
