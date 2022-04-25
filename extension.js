@@ -22,8 +22,7 @@ const Indicator = GObject.registerClass(
 			this.lasttext = '';
 
 			const micon = new St.Icon({
-				//~ icon_name : "edit-find-symbolic",
-				gicon: Gio.icon_new_for_string(Me.path + "/qrcode-symbolic.svg"),
+				gicon : Gio.icon_new_for_string(Me.path + "/qrcode-symbolic.svg"),
 				style_class : 'system-status-icon'
 			});
 			this.add_child(micon);
@@ -32,7 +31,7 @@ const Indicator = GObject.registerClass(
 			this.mqrcode.set_track_hover = true;
 			this.icon = new St.Icon({
 				icon_name : "edit-find-symbolic",
-				icon_size: 256,
+				icon_size : 256,
 			});
 
 			this.mqrcode.actor.add_child(this.icon);
@@ -72,7 +71,6 @@ const Indicator = GObject.registerClass(
 				});
 			} catch (e) { logError(e); }
 		};
-
 
 		destroy() {
 			super.destroy();
