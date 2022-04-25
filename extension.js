@@ -44,7 +44,7 @@ const Indicator = GObject.registerClass(
 						if (text && text.length > 4 && text !== this.lasttext) {
 							const r = GLib.find_program_in_path(cmd);
 							if (!r) {
-								Main.notify(_(`需要安装 ${cmd} 命令。`));
+								Main.notify(_(`Need install ${cmd} command.`));
 								return;
 							}
 							this.lasttext = text;
