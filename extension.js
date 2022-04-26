@@ -66,7 +66,7 @@ const Indicator = GObject.registerClass(
 							}
 						}
 						if (this.ip) {
-							this.async_cmd(`http://${this.ip}:${port}/`);  // ip route
+							this.async_cmd(`http://${this.ip}:${port}/`);
 						} else {
 							this.icon.icon_name = "webpage-symbolic";
 						}
@@ -75,60 +75,23 @@ const Indicator = GObject.registerClass(
 			});
 		}
 
-
-public static void getIPv4()
-    {
-        try
-        {
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
-            {
-                socket.Connect("10.0.1.20", 1337); // doesnt matter what it connects to
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                Console.WriteLine(endPoint.Address.ToString()); //ipv4
-            }
-        }
-        catch (Exception)
-        {
-            Console.WriteLine("Failed"); // If no connection is found
-        }
-    }
-
 		get_lan_ip() {
+			let udp4;
+			let ipv4 = null;
 			try {
-				this._udp4 = Gio.Socket.new(
+				udp4 = Gio.Socket.new(
 					Gio.SocketFamily.IPV4,
 					Gio.SocketType.DATAGRAM,
-					Gio.SocketProtocol.UDP
-				);
-				this._udp4.connect("192.168.0.1", null);
-				this.endPoint = this._udp4.local_address.toString();
+					Gio.SocketProtocol.UDP);
+				udp4.connect(Gio.InetSocketAddress.new_from_string('192.168.0.1', 1280), null);
+				ipv4 = udp4.local_address.get_address().to_string();
+				udp4.close();
 			} catch (e) {
-				this._udp4 = null;
-				this.endPoint = null;
+				log("xxxxxxx" + e);
+				udp4 = null;
+				ipv4 = null;
 			}
-
-
-			//~ lg(Gio.Socket.get_local_address());
-			//~ const ip = Gio.Socket.new(
-									 //~ Gio.SocketFamily.IPV4,
-									 //~ Gio.SocketType.STREAM,
-									 //~ Gio.SocketProtocol.TCP)
-						   //~ .get_local_address();
-			//~ lg(ip);
-			//~ ).get_option(6, 5);
-			//~ if ip invalid, clear ip
-			//~ return ip;
-
-			//~ let net = '';
-			//~ const [ok, content] = GLib.file_get_contents('/proc/net/route');
-			//~ const lines = ByteArray.toString(content).split("\n");
-			//~ for (let i of lines) {
-				//~ if (i == "" || i.indexOf("Gateway")>0){continue;}//不为空，且不包含Gateway
-				//~ lg("****"+i);
-				//~ const seg = i.split(/\s+/);
-				//~ if(seg[1] == "00000000"){net = seg[0]; break;}
-			//~ }
-			return '';
+			return ipv4;
 		};
 
 		async_cmd(str) {
@@ -177,10 +140,23 @@ class Extension {
 	disable() {
 		this._indicator.destroy();
 		this._indicator = null;
-		//~ GLib.rmdir(tmpdir);
-		lg(GLib.rmdir(tmpdir));	 //-1 ??? need Gio lookup into dir to delete files...
-		//~ GLib.rmdir(linkdir);
-		lg(GLib.rmdir(linkdir));
+		[tmpdir, linkdir].forEach((j) => {
+			const dir = Gio.File.new_for_path(j);
+			let fileEnum;
+			let r = [];
+			try {
+				fileEnum = dir.enumerate_children('standard::name', 0, null);
+			} catch (e) { fileEnum = null; }
+			if (fileEnum != null) {
+				let info;
+				while (info = fileEnum.next_file(null)) {
+					const f = info.get_name();
+					const file = Gio.File.new_for_path(j + f);
+					file.delete(null);
+				}
+			}
+			GLib.rmdir(j);
+		});
 		if (this.proc) { this.proc.force_exit(); }
 	}
 }
