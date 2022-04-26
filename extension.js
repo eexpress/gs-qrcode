@@ -5,6 +5,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
+const ByteArray = imports.byteArray;
 
 const _domain = Me.metadata['gettext-domain'];
 const _ = ExtensionUtils.gettext;
@@ -74,17 +75,59 @@ const Indicator = GObject.registerClass(
 			});
 		}
 
+
+public static void getIPv4()
+    {
+        try
+        {
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect("10.0.1.20", 1337); // doesnt matter what it connects to
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                Console.WriteLine(endPoint.Address.ToString()); //ipv4
+            }
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Failed"); // If no connection is found
+        }
+    }
+
 		get_lan_ip() {
+			try {
+				this._udp4 = Gio.Socket.new(
+					Gio.SocketFamily.IPV4,
+					Gio.SocketType.DATAGRAM,
+					Gio.SocketProtocol.UDP
+				);
+				this._udp4.connect("192.168.0.1", null);
+				this.endPoint = this._udp4.local_address.toString();
+			} catch (e) {
+				this._udp4 = null;
+				this.endPoint = null;
+			}
+
+
 			//~ lg(Gio.Socket.get_local_address());
-			const ip = Gio.Socket.new(
-									 Gio.SocketFamily.IPV4,
-									 Gio.SocketType.STREAM,
-									 Gio.SocketProtocol.TCP)
-						   .get_local_address();
+			//~ const ip = Gio.Socket.new(
+									 //~ Gio.SocketFamily.IPV4,
+									 //~ Gio.SocketType.STREAM,
+									 //~ Gio.SocketProtocol.TCP)
+						   //~ .get_local_address();
 			//~ lg(ip);
 			//~ ).get_option(6, 5);
 			//~ if ip invalid, clear ip
 			//~ return ip;
+
+			//~ let net = '';
+			//~ const [ok, content] = GLib.file_get_contents('/proc/net/route');
+			//~ const lines = ByteArray.toString(content).split("\n");
+			//~ for (let i of lines) {
+				//~ if (i == "" || i.indexOf("Gateway")>0){continue;}//不为空，且不包含Gateway
+				//~ lg("****"+i);
+				//~ const seg = i.split(/\s+/);
+				//~ if(seg[1] == "00000000"){net = seg[0]; break;}
+			//~ }
 			return '';
 		};
 
