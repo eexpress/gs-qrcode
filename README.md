@@ -2,6 +2,8 @@
 
 One way sharing clipboard and files to mobile by scan QRCode.
 
-Select text, Click menu to create QRCode.
+Create QRcode for selected text and copied files.
 
-Copy files from nautilus, Click menu to download the files.
+You can download files thr web browser by scan the QRcode.
+
+`qrencode` must be installed.
