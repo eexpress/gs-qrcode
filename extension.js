@@ -42,6 +42,9 @@ const Indicator = GObject.registerClass(
 			this.mqrcode.actor.add_child(this.icon);
 			this.menu.addMenuItem(this.mqrcode);
 
+			this.show = new PopupMenu.PopupMenuItem("");
+			this.menu.addMenuItem(this.show);
+
 			this.menu.connect('open-state-changed', (menu, open) => {
 				if (open) {
 					this._clipboard.get_text(St.ClipboardType.PRIMARY, (clipboard, text) => {
@@ -62,7 +65,9 @@ const Indicator = GObject.registerClass(
 						for (let i of filearray) {
 							if (GLib.file_test(i, GLib.FileTest.IS_REGULAR)) {
 								const t = Gio.File.new_for_path(linkdir + Gio.File.new_for_path(i).get_basename());
-								t.make_symbolic_link(i, null);
+								try {
+									t.make_symbolic_link(i, null);
+								} catch (e) { }
 							}
 						}
 						if (this.ip) {
@@ -106,6 +111,10 @@ const Indicator = GObject.registerClass(
 						let [, stdout, stderr] = proc.communicate_finish(res);
 						if (proc.get_successful()) {
 							this.icon.set_gicon(Gio.icon_new_for_string(tmpfile));
+							const max = 30;
+							const omit = max / 2 - 2;
+							if (str.length > max) { str = str.substr(0, omit) + "..." + str.substr(-omit); }
+							this.show.label.text = str;
 						}
 					} catch (e) { logError(e); }
 				});

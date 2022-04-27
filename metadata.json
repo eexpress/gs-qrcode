@@ -1,6 +1,6 @@
 {
-  "description": "Create QRcode for selected text and copied files. You can download files thr web browser by scan the QRcode. `qrencode` must be installed.",
-  "name": "QRcode",
+  "description": "Create QRcode for selected text and copied files(from nautilus). You can download files thr web browser by scan the QRcode. `qrencode` must be installed.",
+  "name": "QRcode Share",
   "gettext-domain": "qrcode",
   "shell-version": ["40", "41", "42"],
   "url": "https://github.com/eexpress/gs-qrcode",
