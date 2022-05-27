@@ -1,30 +1,30 @@
 const { GObject, GLib, Gio, St, Soup } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-const ByteArray = imports.byteArray;
+const Me			 = ExtensionUtils.getCurrentExtension();
+const Main			 = imports.ui.main;
+const PanelMenu		 = imports.ui.panelMenu;
+const PopupMenu		 = imports.ui.popupMenu;
+const ByteArray		 = imports.byteArray;
 
 const _domain = Me.metadata['gettext-domain'];
-const _ = ExtensionUtils.gettext;
+const _		  = ExtensionUtils.gettext;
 
 function lg(s) { log("===" + _domain + "===>" + s); }
 
-const tmpdir = "/tmp/qrcode/";
+const tmpdir  = "/tmp/qrcode/";
 const linkdir = "/tmp/qrcode-link/";
-const cmd = "qrencode";
-const port = '1280';
+const cmd	  = "qrencode";
+const port	  = '1280';
 
 const Indicator = GObject.registerClass(
 	class Indicator extends PanelMenu.Button {
 		_init() {
 			super._init(0.0, _(Me.metadata['name']));
 			this._clipboard = St.Clipboard.get_default();
-			this.lasttext = '';
-			this.lastfile = '';
-			this.ip = this.get_lan_ip();
+			this.lasttext	= '';
+			this.lastfile	= '';
+			this.ip			= this.get_lan_ip();
 
 			const micon = new St.Icon({
 				gicon : Gio.icon_new_for_string(Me.path + "/qrcode-symbolic.svg"),
@@ -32,12 +32,12 @@ const Indicator = GObject.registerClass(
 			});
 			this.add_child(micon);
 
-			this.mqrcode = new PopupMenu.PopupBaseMenuItem();
+			this.mqrcode				 = new PopupMenu.PopupBaseMenuItem();
 			this.mqrcode.set_track_hover = true;
-			this.icon = new St.Icon({
-				icon_name : "emblem-shared-symbolic",
-				icon_size : 256,
-			});
+			this.icon					 = new St.Icon({
+								   icon_name : "emblem-shared-symbolic",
+								   icon_size : 256,
+							   });
 
 			this.mqrcode.actor.add_child(this.icon);
 			this.menu.addMenuItem(this.mqrcode);
@@ -60,15 +60,15 @@ const Indicator = GObject.registerClass(
 					});
 					this._clipboard.get_text(St.ClipboardType.CLIPBOARD, (clipboard, text) => {
 						if (!text || text == this.lastfile) { return; }
-						this.lastfile = text;
+						this.lastfile	= text;
 						const filearray = text.split("\n");
 						for (let i of filearray) {
-							if (GLib.file_test(i, GLib.FileTest.IS_REGULAR)) {
-								const t = Gio.File.new_for_path(linkdir + Gio.File.new_for_path(i).get_basename());
-								try {
-									t.make_symbolic_link(i, null);
-								} catch (e) { }
-							}
+							if (!GLib.file_test(i, GLib.FileTest.EXISTS)) { continue; }
+							const link = Gio.File.new_for_path(linkdir + Gio.File.new_for_path(i).get_basename());
+							if (link.query_exists()) continue;
+							try {
+								link.make_symbolic_link(i, null);
+							} catch (e) { }
 						}
 						if (this.ip) {
 							this.async_cmd(`http://${this.ip}:${port}/`);
@@ -88,7 +88,7 @@ const Indicator = GObject.registerClass(
 					Gio.SocketFamily.IPV4,
 					Gio.SocketType.DATAGRAM,
 					Gio.SocketProtocol.UDP);
-				udp4.connect(Gio.InetSocketAddress.new_from_string('192.168.0.1', 1280), null);
+				udp4.connect(Gio.InetSocketAddress.new_from_string('192.168.0.1', parseInt(port)), null);
 				ipv4 = udp4.local_address.get_address().to_string();
 				udp4.close();
 			} catch (e) {
@@ -111,7 +111,7 @@ const Indicator = GObject.registerClass(
 						let [, stdout, stderr] = proc.communicate_finish(res);
 						if (proc.get_successful()) {
 							this.icon.set_gicon(Gio.icon_new_for_string(tmpfile));
-							const max = 30;
+							const max  = 30;
 							const omit = max / 2 - 2;
 							if (str.length > max) { str = str.substr(0, omit) + "..." + str.substr(-omit); }
 							this.show.label.text = str;
@@ -159,7 +159,7 @@ class Extension {
 			if (fileEnum != null) {
 				let info;
 				while (info = fileEnum.next_file(null)) {
-					const f = info.get_name();
+					const f	   = info.get_name();
 					const file = Gio.File.new_for_path(j + f);
 					file.delete(null);
 				}
